@@ -35,60 +35,74 @@
     <div class="row" id="phoneList"></div>
   </div>
 
-<script>
-const api = 'https://phone-x19b.onrender.com';
+  <script>
+    // Load phones from backend
+    function loadPhones() {
+      fetch(`https://phone-x19b.onrender.com/phones`)
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('phoneList');
+          list.innerHTML = '';
+          data.forEach(p => {
+            list.innerHTML += `
+              <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                  ${p.image ? `<img src="https://phone-x19b.onrender.com/uploads/${p.image}" class="card-img-top" style="height: 200px; object-fit: cover;">` : ''}
+                  <div class="card-body">
+                    <h5 class="card-title">${p.model}</h5>
+                    <p class="card-text"><strong>Color:</strong> ${p.color}</p>
+                    <p class="card-text"><strong>Price:</strong> $${p.price}</p>
+                    <p class="card-text">${p.detail}</p>
+                    <button onclick="deletePhone(${p.phone_id})" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </div>
+              </div>`;
+          });
+        })
+        .catch(err => {
+          alert("Failed to load phones.");
+          console.error(err);
+        });
+    }
 
-function loadPhones() {
-  fetch(`${api}/phones`)
-    .then(res => res.json())
-    .then(data => {
-      const list = document.getElementById('phoneList');
-      list.innerHTML = '';
-      data.forEach(p => {
-        list.innerHTML += `
-          <div class="col-md-4 mb-4">
-            <div class="card h-100">
-              ${p.image ? `<img src="${api}/uploads/${p.image}" class="card-img-top" style="height: 200px; object-fit: cover;">` : ''}
-              <div class="card-body">
-                <h5>${p.model}</h5>
-                <p><strong>Color:</strong> ${p.color}</p>
-                <p><strong>Price:</strong> $${p.price}</p>
-                <p>${p.detail}</p>
-                <button onclick="deletePhone(${p.id})" class="btn btn-danger btn-sm">Delete</button>
-              </div>
-            </div>
-          </div>`;
-      });
-    });
-}
-
-document.getElementById('addForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const form = new FormData(this);
-  fetch(`${api}/add`, {
-    method: 'POST',
-    body: form
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message);
-    loadPhones();
-    this.reset();
-  });
-});
-
-function deletePhone(id) {
-  if (confirm('Delete this phone?')) {
-    fetch(`${api}/delete/${id}`, { method: 'DELETE' })
+    // Add phone
+    document.getElementById('addForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = new FormData(this);
+      fetch(`https://phone-x19b.onrender.com/add`, {
+        method: 'POST',
+        body: form
+      })
       .then(res => res.json())
       .then(data => {
         alert(data.message);
         loadPhones();
+        this.reset();
+      })
+      .catch(err => {
+        alert("Failed to add phone.");
+        console.error(err);
       });
-  }
-}
+    });
 
-loadPhones();
-</script>
+    // Delete phone
+    function deletePhone(id) {
+      if (confirm('Delete this phone?')) {
+        fetch(`https://phone-x19b.onrender.com/delete/${id}`, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            loadPhones();
+          })
+          .catch(err => {
+            alert("Failed to delete.");
+            console.error(err);
+          });
+      }
+    }
+
+    // Initial load
+    loadPhones();
+  </script>
 </body>
 </html>
